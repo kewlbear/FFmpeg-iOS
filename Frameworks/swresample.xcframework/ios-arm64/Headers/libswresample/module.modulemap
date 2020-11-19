@@ -1,0 +1,4 @@
+module swresample {
+    umbrella "."
+    export *
+}
