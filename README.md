@@ -10,8 +10,15 @@ This swift package enables you to use FFmpeg libraries in your iOS apps.
 
 ## Usage
 
-See https://github.com/kewlbear/YoutubeDL.
+```
+import avformat
+
+var ifmt_ctx: UnsafeMutablePointer<AVFormatContext>?
+var ret = avformat_open_input(&ifmt_ctx, filename, nil, nil)
+```
+
+See https://github.com/kewlbear/YoutubeDL-iOS.
 
 ## License
 
-LGPL 2.0
+LGPL v2.1+
