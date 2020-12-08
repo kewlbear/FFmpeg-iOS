@@ -293,7 +293,7 @@ extension Tool {
                 
                 var options: [String] {
                     [
-                        arch != "x86_64" ? "--host=\(host(arch))-apple-darwin" : "",
+                        "--host=\(host(arch))-apple-darwin",
                         "--prefix=\(installPrefix)",
                         "--enable-static",
                         "--disable-cli",
@@ -361,48 +361,39 @@ extension Tool {
             }
         }
     }
-
-    struct InstallHomebrew: ParsableCommand {
-        func run() throws {
-            try system(#"/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)""#)
-        }
-    }
-    
-    struct InstallYasm: ParsableCommand {
-        func run() throws {
-            try system("brew install yasm")
-        }
-    }
-    
-    struct InstallGasPreprocessor: ParsableCommand {
-        func run() throws {
-            try system("""
-                curl -L https://github.com/libav/gas-preprocessor/raw/master/gas-preprocessor.pl \
-                -o /usr/local/bin/gas-preprocessor.pl \
-                && chmod +x /usr/local/bin/gas-preprocessor.pl
-                """)
-        }
-    }
     
     struct DepCommand: ParsableCommand {
         static var configuration = CommandConfiguration(commandName: "dep", abstract: "Install build dependency")
         
         func run() throws {
-            if !which("yasm") {
-                print("Yasm not found")
-
+            func installHomebrewIfNeeded() throws {
                 if !which("brew") {
-                    print("Homebrew not found. Trying to install...")
-                    try InstallHomebrew().run()
+                    print("'brew' not found. Trying to install...")
+                    try system(#"/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)""#)
                 }
-
-                print("Trying to install Yasm...")
-                try InstallYasm().run()
             }
             
+            func installWithHomebrew(_ command: String) throws {
+                if !which(command) {
+                    print("'\(command)' not found")
+                    
+                    try installHomebrewIfNeeded()
+                    
+                    print("Trying to install '\(command)'...")
+                    try system("brew install \(command)")
+                }
+            }
+            
+            try installWithHomebrew("yasm")
+            try installWithHomebrew("nasm")
+            
             if !which("gas-preprocessor.pl") {
-                print("gas-preprocessor.pl not found. Trying to install...")
-                try InstallGasPreprocessor().run()
+                print("'gas-preprocessor.pl' not found. Trying to install...")
+                try system("""
+                    curl -L https://github.com/libav/gas-preprocessor/raw/master/gas-preprocessor.pl \
+                    -o /usr/local/bin/gas-preprocessor.pl \
+                    && chmod +x /usr/local/bin/gas-preprocessor.pl
+                    """)
             }
         }
     }
