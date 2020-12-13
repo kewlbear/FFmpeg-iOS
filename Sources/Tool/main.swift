@@ -25,16 +25,6 @@ struct Tool: ParsableCommand {
 }
 
 struct LibraryOptions: ParsableArguments {
-    @Option(help: "libraries to include")
-    var library = [
-        "avcodec",
-        "avdevice",
-        "avfilter",
-        "avformat",
-        "avutil",
-        "swresample",
-        "swscale",
-    ]
 }
 
 struct SourceOptions: ParsableArguments {
@@ -56,12 +46,21 @@ struct BuildOptions: ParsableArguments {
     var buildDirectory = "./build"
     
     @Option(help: "architectures to include")
-    var arch = ["arm64", "x86_64"]
+    var arch = [
+        "arm64",
+        "arm64-iPhoneSimulator",
+        "x86_64",
+        "arm64-catalyst",
+        "x86_64-catalyst",
+        "arm64-AppleTVOS",
+        "arm64-AppleTVSimulator",
+//        "x86_64-AppleTVSimulator",
+    ]
 }
 
 struct ConfigureOptions: ParsableArguments {
     @Option
-    var deploymentTarget = "12.0"
+    var deploymentTarget = "13.0"
     
     @Option(help: "additional options for configure script")
     var extraOptions: [String] = []
@@ -232,7 +231,24 @@ extension Tool {
             }
             
             try buildLibrary(name: "FFmpeg", sourceDirectory: sourceDirectory, arch: buildOptions.arch, deploymentTarget: configureOptions.deploymentTarget, buildDirectory: buildOptions.buildDirectory, configuration: FFmpegConfiguration.self) {
-                $0.options + configureOptions.extraOptions
+                let platformOptions: [String]
+                switch $0.platform {
+                case "MacOSX":
+                    platformOptions = [
+                        "--disable-coreimage",
+                        "--disable-securetransport",
+                        "--disable-videotoolbox",
+                    ]
+                case "AppleTVOS", "AppleTVSimulator":
+                    platformOptions = [
+                        "--disable-avfoundation",
+                    ]
+                default:
+                    platformOptions = []
+                }
+                return $0.options
+                    + configureOptions.extraOptions
+                    + platformOptions
             }
         }
         
@@ -321,18 +337,29 @@ extension Tool {
         func buildLibrary<T>(name: String, sourceDirectory: String, arch: [String], deploymentTarget: String, buildDirectory: String, configuration: T.Type, customize: (T) -> [String] = { $0.options }) throws where T: Configuration {
             let buildDir = URL(fileURLWithPath: buildDirectory)
                 .appendingPathComponent(name)
-            for arch in arch {
-                print("building \(arch)...")
-                let archDir = buildDir.appendingPathComponent(arch)
+            for archx in arch {
+                print("building \(archx)...")
+                let archDir = buildDir.appendingPathComponent(archx)
                 try createDirectory(at: archDir.path)
                 
                 let prefix = buildDir
                     .deletingLastPathComponent()
                     .appendingPathComponent("install")
                     .appendingPathComponent(name)
-                    .appendingPathComponent(arch)
+                    .appendingPathComponent(archx)
                 
-                let conf = T(sourceDirectory: sourceDirectory, arch: arch, platform: nil, deploymentTarget: deploymentTarget, installPrefix: prefix.path)
+                let array = archx.split(separator: "-")
+                let platform: String?
+                if array.count > 1 {
+                    if array[1] == "catalyst" {
+                        platform = "MacOSX"
+                    } else {
+                        platform = String(array[1])
+                    }
+                } else {
+                    platform = nil
+                }
+                let conf = T(sourceDirectory: sourceDirectory, arch: String(array[0]), platform: platform, deploymentTarget: deploymentTarget, installPrefix: prefix.path)
                 let options = customize(conf)
                 try launch(launchPath: "\(sourceDirectory)/configure",
                            arguments: options,
@@ -349,7 +376,7 @@ extension Tool {
                 let all = buildDir
                     .deletingLastPathComponent()
                     .appendingPathComponent("install")
-                    .appendingPathComponent(arch)
+                    .appendingPathComponent(archx)
                 let include = all.appendingPathComponent("include").path
                 let lib = all.appendingPathComponent("lib").path
                 try createDirectory(at: include)
@@ -492,31 +519,71 @@ extension Tool {
             let lib = URL(fileURLWithPath: buildOptions.buildDirectory).appendingPathComponent("install").appendingPathComponent(sourceOptions.lib)
             let contents = try FileManager.default.contentsOfDirectory(at: lib.appendingPathComponent(buildOptions.arch[0]).appendingPathComponent("lib"), includingPropertiesForKeys: nil, options: [])
             let modules = contents.filter { $0.pathExtension == "a" }.map { $0.deletingPathExtension().lastPathComponent.replacingOccurrences(of: "lib", with: "") }
-            
-            for library in modules {
-                var args: [String] = []
-                let temp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("ffmpeg-ios")
-                for arch in buildOptions.arch {
-                    let dir = lib.appendingPathComponent(arch)
 
-                    let include: URL
+            for library in modules {
+                func convert(_ arch: String) -> String {
+                    let array = arch.split(separator: "-")
+                    if array.count > 1 {
+                        return array[1].lowercased()
+                    }
+                    
+                    switch arch {
+                    case "arm64", "armv7":
+                        return "iphoneos"
+                    case "x86_64":
+                        return "iphonesimulator"
+                    default:
+                        fatalError()
+                    }
+                }
+                
+                var dict: [String: Set<String>] = [:]
+                
+                for arch in buildOptions.arch {
+                    let sdk = convert(arch)
+                    var set = dict[sdk] ?? []
+                    set.insert(arch)
+                    dict[sdk] = set
+                }
+                
+                var args: [String] = []
+
+                for (sdk, set) in dict {
+                    guard let arch = set.first else {
+                        fatalError()
+                    }
+                    let dir = "\(lib.path)/\(arch)"
+                    
+                    let xcf = "\(buildOptions.buildDirectory)/xcf/\(sdk)"
+                    try createDirectory(at: xcf)
+                    
+                    let fat = "\(xcf)/lib\(library).a"
+
+                    try launch(launchPath: "/usr/bin/lipo",
+                               arguments:
+                                set.map { arch in "\(lib.path)/\(arch)/lib/lib\(library).a" }
+                                + [
+                                    "-create",
+                                    "-output",
+                                    fat,
+                                ])
+
+                    let include: String
                     if modules.count > 1 {
-                        include = temp
-                            .appendingPathComponent(arch)
-                            .appendingPathComponent("include")
-                        try removeItem(at: include.path)
-                        try createDirectory(at: include.path)
+                        include = "\(xcf)/\(library)/include"
+                        try removeItem(at: include)
+                        try createDirectory(at: include)
                         
-                        let copy = include.appendingPathComponent("lib\(library)").path
+                        let copy = "\(include)/lib\(library)"
                         try removeItem(at: copy)
-                        try copyItem(at: "\(dir.path)/include/lib\(library)", to: copy)
+                        try copyItem(at: "\(dir)/include/lib\(library)", to: copy)
                     } else {
-                        include = dir.appendingPathComponent("include")
+                        include = "\(dir)/include"
                     }
                     
                     args += [
-                        "-library", "\(dir.path)/lib/lib\(library).a",
-                        "-headers", include.path,
+                        "-library", fat,
+                        "-headers", include,
                     ]
                 }
                 
@@ -547,33 +614,32 @@ extension Tool {
         @OptionGroup var sourceOptions: SourceOptions
         
         func run() throws {
-            func convert(_ arch: String) -> String {
-                switch arch {
-                case "arm64":
-                    return "ios-arm64"
-                case "x86_64":
-                    return "ios-x86_64-simulator"
-                default:
-                    fatalError()
-                }
-            }
-            
             let lib = URL(fileURLWithPath: buildOptions.buildDirectory).appendingPathComponent("install").appendingPathComponent(sourceOptions.lib)
             let contents = try FileManager.default.contentsOfDirectory(at: lib.appendingPathComponent(buildOptions.arch[0]).appendingPathComponent("lib"), includingPropertiesForKeys: nil, options: [])
             let modules = contents.filter { $0.pathExtension == "a" }.map { $0.deletingPathExtension().lastPathComponent.replacingOccurrences(of: "lib", with: "") }
             
             for library in modules {
-                for arch in buildOptions.arch {
-                    let directory = convert(arch)
+                let path = "\(xcframeworkOptions.frameworks)/\(library).xcframework"
+                let data = try Data(contentsOf: URL(fileURLWithPath: "\(path)/Info.plist"))
+                guard let info = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
+                      let libraries = info["AvailableLibraries"] as? [[String: Any]] else {
+                    throw ExitCode.failure
+                }
+                      
+                for dict in libraries {
+                    guard let headersPath = dict["HeadersPath"] as? String,
+                          let libraryIdentifier = dict["LibraryIdentifier"] as? String else {
+                        throw ExitCode.failure
+                    }
                     
-                    let to = URL(fileURLWithPath: "\(xcframeworkOptions.frameworks)/\(library).xcframework/\(directory)/Headers/lib\(library)/module.modulemap")
+                    let to = URL(fileURLWithPath: "\(path)/\(libraryIdentifier)/\(headersPath)/lib\(library)/module.modulemap")
                     
                     try createDirectory(at: to.deletingLastPathComponent().path)
                     
                     try removeItem(at: to.path)
                     
                     do {
-                        try copyItem(at: "ModuleMaps/\(library)/\(directory)/module.modulemap",
+                        try copyItem(at: "ModuleMaps/\(library)/module.modulemap",
                                      to: to.path)
                     }
                     catch {
@@ -795,8 +861,16 @@ class ConfigurationHelper {
         switch self.platform {
         case "iPhoneSimulator":
             cFlags.append(" -mios-simulator-version-min=\(deploymentTarget)")
-        default:
+        case "iPhoneOS":
             cFlags.append(" -mios-version-min=\(deploymentTarget) -fembed-bitcode")
+        case "MacOSX":
+            cFlags.append(" -mios-version-min=\(deploymentTarget) -target \(arch)-apple-ios-macabi")
+        case "AppleTVOS":
+            cFlags.append(" -mtvos-version-min=\(deploymentTarget) -fembed-bitcode")
+        case "AppleTVSimulator":
+            cFlags.append(" -mtvos-simulator-version-min=\(deploymentTarget)")
+        default:
+            fatalError("Unknown platform: \(self.platform)")
         }
     }
 }
