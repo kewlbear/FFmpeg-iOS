@@ -1,6 +1,6 @@
 # FFmpeg-iOS
 
-This swift package enables you to use FFmpeg libraries in your iOS apps.
+This swift package enables you to use FFmpeg libraries in your iOS, Mac Catalyst and tvOS apps.
 
 ## Installation
 
@@ -21,28 +21,39 @@ See https://github.com/kewlbear/YoutubeDL-iOS.
 
 ## Building Libraries
 
-Preparation:
+You can install build tool
 
+### [Mint](https://github.com/yonaskolb/mint)
+```
+$ mint install kewlbear/FFmpeg-iOS
+```
+
+or run from source.
+
+### Swift Package Manager
 ```
 git clone https://github.com/kewlbear/FFmpeg-iOS.git
 cd FFmpeg-iOS
 ```
 
+You should omit "swift run" from following commands if you installed build tool.
+
 To download FFmpeg source and build .xcframeworks:
 
 ```
-swift run ffmpeg-ios
+$ swift run ffmpeg-ios
 ```
+
 To build fat libraries:
 
 ```
-swift run ffmpeg-ios --disable-xcframework 
+$ swift run ffmpeg-ios --disable-xcframework 
 ```
 
 To download x264 source and build fat libraries:
 
 ```
-swift run ffmpeg-ios x264 --disable-xcframework
+$ swift run ffmpeg-ios x264 --disable-xcframework
 ```
 
 For other usages:
