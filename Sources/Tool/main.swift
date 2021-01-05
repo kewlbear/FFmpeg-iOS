@@ -407,7 +407,7 @@ extension Tool {
                     try installHomebrewIfNeeded()
                     
                     print("Trying to install '\(command)'...")
-                    try system("brew install \(command)")
+                    try system("arch -x86_64 brew install \(command)")
                 }
             }
             
