@@ -19,6 +19,7 @@ struct Tool: ParsableCommand {
             FatCommand.self,
             DepCommand.self,
             SourceCommand.self,
+            ZipCommand.self,
 //            Clean.self,
         ],
         defaultSubcommand: BuildCommand.self)
@@ -118,6 +119,9 @@ extension Tool {
         @Flag
         var disableModule = false
         
+        @Flag
+        var disableZip = false
+        
         @OptionGroup var sourceOptions: SourceOptions
         @OptionGroup var buildOptions: BuildOptions
         @OptionGroup var libraryOptions: LibraryOptions
@@ -169,6 +173,13 @@ extension Tool {
                     modularize.xcframeworkOptions = xcframeworkOptions
                     modularize.sourceOptions = sourceOptions
                     try modularize.run()
+                }
+                
+                if !disableZip {
+                    print("zipping...")
+                    var zip = ZipCommand()
+                    zip.xcframeworkOptions = xcframeworkOptions
+                    try zip.run()
                 }
             } else {
                 print("building fat binaries...")
@@ -598,6 +609,21 @@ extension Tool {
                             + [
                                 "-output", output,
                             ])
+            }
+        }
+    }
+    
+    struct ZipCommand: ParsableCommand {
+        static var configuration = CommandConfiguration(commandName: "zip", abstract: "Zip .xcframework")
+        
+        @OptionGroup var xcframeworkOptions: XCFrameworkOptions
+
+        func run() throws {
+            let contents = try FileManager.default.contentsOfDirectory(at: URL(fileURLWithPath: xcframeworkOptions.frameworks), includingPropertiesForKeys: nil)
+            let frameworks = contents.filter { $0.pathExtension == "xcframework" }.map { $0.deletingPathExtension().lastPathComponent }
+
+            for framework in frameworks {
+                try system("cd \(xcframeworkOptions.frameworks) && rm -f \(framework).zip; zip -r \(framework).zip \(framework).xcframework")
             }
         }
     }
