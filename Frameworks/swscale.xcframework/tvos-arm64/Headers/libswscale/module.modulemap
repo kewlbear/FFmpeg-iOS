@@ -1,4 +1,0 @@
-module swscale {
-    umbrella "."
-    export *
-}

@@ -1,4 +1,0 @@
-module avdevice {
-    umbrella "."
-    export *
-}
