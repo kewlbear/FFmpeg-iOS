@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: swift run ffmpeg-ios --arch arm64 --arch x86_64
+     - name: Archive avcodec.xcframework
+         uses: actions/upload-artifact@v2
+         with:
+           name: avcodec
+           path: Frameworks/avcodec.xcframework
+     - name: Archive avformat.xcframework
+         uses: actions/upload-artifact@v2
+         with:
+           name: avformat
+           path: Frameworks/avformat.xcframework
