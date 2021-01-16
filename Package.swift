@@ -9,7 +9,7 @@ let package = Package(
         .library(
             name: "FFmpeg-iOS",
             targets: [
-                "avcodec", "avutil", "avformat", "avfilter", "swscale", "swresample"]),
+                "avcodec", "avutil", "avformat", "avfilter", "swscale", "swresample", "Depend"]),
         .executable(name: "ffmpeg-ios", targets: ["Tool"]),
     ],
     dependencies: [
@@ -26,5 +26,12 @@ let package = Package(
         .target(name: "Tool", dependencies: [
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
         ]),
+        .target(name: "Depend",
+                linkerSettings: [
+                    .linkedLibrary("z"),
+                    .linkedLibrary("bz2"),
+                    .linkedLibrary("iconv"),
+                ]
+        ),
     ]
 )
