@@ -49,12 +49,12 @@ struct BuildOptions: ParsableArguments {
     @Option(help: "architectures to include")
     var arch = [
         "arm64",
-        "arm64-iPhoneSimulator",
+//        "arm64-iPhoneSimulator",
         "x86_64",
-        "arm64-catalyst",
-        "x86_64-catalyst",
-        "arm64-AppleTVOS",
-        "arm64-AppleTVSimulator",
+//        "arm64-catalyst",
+//        "x86_64-catalyst",
+//        "arm64-AppleTVOS",
+//        "arm64-AppleTVSimulator",
 //        "x86_64-AppleTVSimulator",
     ]
 }
@@ -227,7 +227,7 @@ extension Tool {
                         "--prefix=\(installPrefix)",
                         "--enable-cross-compile",
                         "--disable-debug",
-                        "--disable-programs",
+//                        "--disable-programs",
                         "--disable-doc",
                         "--enable-pic",
                         "--disable-audiotoolbox",
@@ -380,7 +380,8 @@ extension Tool {
                 try launch(launchPath: "/usr/bin/make",
                            arguments: [
                             "-j3",
-                            "install",
+                            "-f", "../../../libffmpeg/Makefile",
+                            "xinstall",
                            ], // FIXME: GASPP_FIX_XCODE5=1 ?
                            currentDirectoryPath: archDir.path)
                 
@@ -779,8 +780,8 @@ func removeItem(at path: String) throws {
             throw error
         }
     }
-
 }
+
 func which(_ command: String) -> Bool {
     do {
         try system("which \(command)")
@@ -913,6 +914,63 @@ private func WIFEXITED(_ status: CInt) -> Bool {
 
 private func WEXITSTATUS(_ status: CInt) -> CInt {
     return (status >> 8) & 0xff
+}
+
+
+
+protocol Recipe {
+    func run() throws
+}
+
+struct CompositeRecipe: Recipe {
+    let recipes: [Recipe]
+    
+    func run() throws {
+        for recipe in recipes {
+            try recipe.run()
+        }
+    }
+}
+
+struct Shell: Recipe {
+    let command: String
+    
+    init(_ command: String) {
+        self.command = command
+    }
+    
+    func run() throws {
+        // FIXME: ...
+        print(command)
+    }
+}
+
+//struct Launch: Recipe {
+//    <#fields#>
+//}
+
+@resultBuilder struct RecipeBuilder {
+    static func buildBlock(_ partialResults: Recipe...) -> Recipe {
+        CompositeRecipe(recipes: partialResults.map { $0 })
+    }
+    
+    static func buildOptional(_ content: Recipe?) -> Recipe {
+        CompositeRecipe(recipes: [])
+    }
+}
+
+func which(_ name: String) -> String? {
+    nil
+}
+
+func fileExists(_ path: String) -> Bool {
+    false
+}
+
+@RecipeBuilder func build() -> Recipe {
+    if which("yasm") == nil {
+        Shell("brew install yasm")
+    }
 }
 
 Tool.main()

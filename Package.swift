@@ -9,7 +9,7 @@ let package = Package(
         .library(
             name: "FFmpeg-iOS",
             targets: [
-                "avcodec", "avutil", "avformat", "avfilter", "swscale", "swresample", "Depend"]),
+                "avcodec", "avutil", "avformat", "avfilter", "avdevice", "swscale", "swresample", "Depend", "ffmpeg",]),
         .executable(name: "ffmpeg-ios", targets: ["Tool"]),
     ],
     dependencies: [
@@ -23,6 +23,7 @@ let package = Package(
         .binaryTarget(name: "avdevice", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.2/avdevice.zip", checksum: "492eec13b86009b2eb1c3ff2f0a41380bda230ec3f1c1d35b97f4e660ac56b6d"),
         .binaryTarget(name: "swscale", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.2/swscale.zip", checksum: "6430cab90b477a0bfdf0891ab4c5ce2eb26bed27c4eb46ffc1365e37c82b179d"),
         .binaryTarget(name: "swresample", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.2/swresample.zip", checksum: "ff2c8e9ef5b8acac334763acc308f418bb311ab8d628122c67a7ddcc7f78b550"),
+        .binaryTarget(name: "ffmpeg", path: "Frameworks/ffmpeg.xcframework"),
         .target(name: "Tool", dependencies: [
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
         ]),
