@@ -9,7 +9,9 @@ let package = Package(
         .library(
             name: "FFmpeg-iOS",
             targets: [
-                "avcodec", "avutil", "avformat", "avfilter", "avdevice", "swscale", "swresample", "Depend", "ffmpeg",]),
+                "avcodec", "avutil", "avformat", "avfilter", "avdevice", "swscale", "swresample",
+                "Depend", "ffmpeg", "Hook", "FFmpegSupport",
+            ]),
         .executable(name: "ffmpeg-ios", targets: ["Tool"]),
     ],
     dependencies: [
@@ -34,5 +36,10 @@ let package = Package(
                     .linkedLibrary("iconv"),
                 ]
         ),
+        .target(name: "Hook", dependencies: ["ffmpeg",]),
+        .target(name: "FFmpegSupport", dependencies: [
+//            "ffmpeg",
+            "Hook",
+        ]),
     ]
 )
