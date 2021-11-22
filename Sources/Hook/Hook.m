@@ -15,10 +15,16 @@ jmp_buf j;
 
 void reset(void) {
     // FIXME: replace with #include <ffmpeg.h>
+    extern int nb_input_files;
+    extern int nb_input_streams;
     extern int nb_output_files;
+    extern int nb_output_streams;
     extern int nb_filtergraphs;
     
+    nb_input_files = 0;
+    nb_input_streams = 0;
     nb_output_files = 0;
+    nb_output_streams = 0;
     nb_filtergraphs = 0;
 }
 
