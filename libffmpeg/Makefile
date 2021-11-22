@@ -4,6 +4,7 @@ xinstall: install-libs install-headers libffmpeg.a
 	$(INSTALL) -m 644 libffmpeg.a "$(LIBDIR)"
 	$(Q)mkdir -p "$(INCDIR)/libffmpeg"
 	$(INSTALL) -m 644 ../../../libffmpeg/*.h "$(INCDIR)/libffmpeg"
+	$(INSTALL) -m 644 src/fftools/ffmpeg.h "$(INCDIR)/libffmpeg"
 
 fftools/ffmpeg.o: CFLAGS += -Dmain="FFmpeg_main(int, char**); extern int FFmpeg_main"
 
