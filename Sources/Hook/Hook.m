@@ -29,17 +29,23 @@ void reset(void) {
 }
 
 void FFmpeg_exit(int code) {
+    NSLog(@"%s=%d, will longjmp", __func__, code);
     longjmp(j, code ?: HOOK0);
 }
 
 int HookMain(int argc, char **argv) {
     int ret = setjmp(j);
+    NSLog(@"%s: setjmp=%d", __func__, ret);
     if (ret) {
         reset();
+        
         return ret == HOOK0 ? 0 : ret;
     }
     
     ret = FFmpeg_main(argc, argv);
+    NSLog(@"%s: FFmpeg_main=%d", __func__, ret);
+    
     reset();
+    
     return ret;
 }
