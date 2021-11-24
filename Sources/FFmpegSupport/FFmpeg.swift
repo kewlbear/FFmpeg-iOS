@@ -12,7 +12,12 @@ import Hook
 var argv: [UnsafeMutablePointer<CChar>?] = []
 
 public func ffmpeg(_ args: String...) -> Int {
-    argv = args.map { strdup($0) }
+    ffmpeg(args)
+}
+
+public func ffmpeg(_ args: [String]) -> Int {
+    print(#function, args)
+    argv = args.map { strdup($0) } // FIXME: free
     let ret = HookMain(Int32(args.count), &argv)
     return Int(ret)
 }
