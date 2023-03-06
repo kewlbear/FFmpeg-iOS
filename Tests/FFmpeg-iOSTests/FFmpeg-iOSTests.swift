@@ -1,9 +1,19 @@
+// FFmpeg-iOS: Swift package to use FFmpeg in your iOS apps
+// Copyright (C) 2023  Changbeom Ahn
 //
-//  FFmpeg-iOSTests.swift
-//  
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
 //
-//  Created by 안창범 on 2021/11/08.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 import XCTest
 @testable import FFmpegSupport
@@ -20,9 +30,15 @@ class FFmpeg_iOSTests: XCTestCase {
 
     @available(iOS 13.0, *)
     func testExample() throws {
-        guard let url = Bundle.module.url(forResource: "bear-320x240-video-only", withExtension: "webm") else { fatalError() }
-        for _ in 1...2 {
-            _ = try transcode(from: url, to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("test.mp4"))
+        for _ in 1..<2 {
+            _ = ffmpeg([
+                "ffmpeg",
+                "-y",
+                "-i", "https://dl6.webmfiles.org/big-buck-bunny_trailer.webm",
+                URL(fileURLWithPath: NSTemporaryDirectory())
+                    .appendingPathComponent("test.mp4")
+                    .path
+            ])
         }
     }
 

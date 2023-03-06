@@ -1,13 +1,23 @@
+// FFmpeg-iOS: Swift package to use FFmpeg in your iOS apps
+// Copyright (C) 2023  Changbeom Ahn
 //
-//  Hook.m
-//  
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
 //
-//  Created by Changbeom Ahn on 2021/11/05.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #import <Foundation/Foundation.h>
-//#import "Hook.h"
-@import ffmpeg;
+#import "Hook.h"
+//@import ffmpeg;
 
 #define HOOK0 1973
 
@@ -16,15 +26,11 @@ jmp_buf j;
 void reset(void) {
     // FIXME: replace with #include <ffmpeg.h>
     extern int nb_input_files;
-    extern int nb_input_streams;
     extern int nb_output_files;
-    extern int nb_output_streams;
     extern int nb_filtergraphs;
     
     nb_input_files = 0;
-    nb_input_streams = 0;
     nb_output_files = 0;
-    nb_output_streams = 0;
     nb_filtergraphs = 0;
 }
 
@@ -42,6 +48,7 @@ int HookMain(int argc, char **argv) {
         return ret == HOOK0 ? 0 : ret;
     }
     
+    int FFmpeg_main(int, char **);
     ret = FFmpeg_main(argc, argv);
     NSLog(@"%s: FFmpeg_main=%d", __func__, ret);
     

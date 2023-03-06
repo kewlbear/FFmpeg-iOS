@@ -8,8 +8,20 @@ xinstall: install-libs install-headers libffmpeg.a
 
 fftools/ffmpeg.o: CFLAGS += -Dmain="FFmpeg_main(int, char**); extern int FFmpeg_main"
 
-fftools/ffmpeg.o fftools/ffmpeg_opt.o fftools/ffmpeg_filter.o fftools/ffmpeg_hw.o fftools/ffmpeg_videotoolbox.o fftools/cmdutils.o: CFLAGS += -Dexit=FFmpeg_exit
+OBJS-ffmpeg +=                  \
+	fftools/cmdutils.o fftools/opt_common.o fftools/ffmpeg.o \
+    fftools/ffmpeg_demux.o      \
+    fftools/ffmpeg_filter.o     \
+    fftools/ffmpeg_hw.o         \
+    fftools/ffmpeg_mux.o        \
+    fftools/ffmpeg_mux_init.o   \
+    fftools/ffmpeg_opt.o        \
+    fftools/objpool.o           \
+    fftools/sync_queue.o        \
+    fftools/thread_queue.o      \
 
-libffmpeg.a: fftools/ffmpeg.o fftools/ffmpeg_opt.o fftools/ffmpeg_filter.o fftools/ffmpeg_hw.o fftools/ffmpeg_videotoolbox.o fftools/cmdutils.o
+$(OBJS-ffmpeg): CFLAGS += -Dexit=FFmpeg_exit
+
+libffmpeg.a: $(OBJS-ffmpeg)
 	$(RM) $@
 	$(AR) $(ARFLAGS) $(AR_O) $^

@@ -1,9 +1,19 @@
+// FFmpeg-iOS: Swift package to use FFmpeg in your iOS apps
+// Copyright (C) 2023  Changbeom Ahn
 //
-//  main.swift
-//  
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
 //
-//  Created by 안창범 on 2020/12/01.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 import ArgumentParser
 import Foundation
@@ -49,7 +59,7 @@ struct BuildOptions: ParsableArguments {
     @Option(help: "architectures to include")
     var arch = [
         "arm64",
-//        "arm64-iPhoneSimulator",
+        "arm64-iPhoneSimulator",
         "x86_64",
 //        "arm64-catalyst",
 //        "x86_64-catalyst",
@@ -419,7 +429,7 @@ extension Tool {
                     try installHomebrewIfNeeded()
                     
                     print("Trying to install '\(command)'...")
-                    try system("arch -x86_64 brew install \(command)")
+                    try system("brew install \(command)")
                 }
             }
             
@@ -430,8 +440,8 @@ extension Tool {
                 print("'gas-preprocessor.pl' not found. Trying to install...")
                 try system("""
                     curl -L https://github.com/libav/gas-preprocessor/raw/master/gas-preprocessor.pl \
-                    -o /usr/local/bin/gas-preprocessor.pl \
-                    && chmod +x /usr/local/bin/gas-preprocessor.pl
+                    -o /opt/homebrew/bin/gas-preprocessor.pl \
+                    && chmod +x /opt/homebrew/bin/gas-preprocessor.pl
                     """)
             }
         }
@@ -721,6 +731,7 @@ extension Tool {
 }
 
 func launch(launchPath: String, arguments: [String], currentDirectoryPath: String? = nil, environment: [String: String]? = nil) throws {
+    #if os(macOS)
     let process = Process()
     
     if #available(OSX 10.13, *) {
@@ -753,6 +764,7 @@ func launch(launchPath: String, arguments: [String], currentDirectoryPath: Strin
         print("'\(launchPath)' exit code: \(process.terminationStatus)")
         throw ExitCode(process.terminationStatus)
     }
+    #endif
 }
 
 func createDirectory(at path: String, withIntermediateDirectories: Bool = true, attributes: [FileAttributeKey: Any]? = nil) throws {
@@ -889,11 +901,11 @@ class ConfigurationHelper {
         case "iPhoneSimulator":
             cFlags.append(" -mios-simulator-version-min=\(deploymentTarget)")
         case "iPhoneOS":
-            cFlags.append(" -mios-version-min=\(deploymentTarget) -fembed-bitcode")
+            cFlags.append(" -mios-version-min=\(deploymentTarget)")
         case "MacOSX":
             cFlags.append(" -mios-version-min=\(deploymentTarget) -target \(arch)-apple-ios-macabi")
         case "AppleTVOS":
-            cFlags.append(" -mtvos-version-min=\(deploymentTarget) -fembed-bitcode")
+            cFlags.append(" -mtvos-version-min=\(deploymentTarget)")
         case "AppleTVSimulator":
             cFlags.append(" -mtvos-simulator-version-min=\(deploymentTarget)")
         default:
@@ -973,4 +985,6 @@ func fileExists(_ path: String) -> Bool {
     }
 }
 
+#if os(macOS)
 Tool.main()
+#endif

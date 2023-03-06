@@ -1,20 +1,19 @@
 # FFmpeg-iOS
 
-This swift package enables you to use FFmpeg libraries in your iOS, Mac Catalyst and tvOS apps.
+This Swift package enables you to use FFmpeg libraries in your iOS, Mac Catalyst and tvOS apps.
 
 ## Installation
 
 ```
-.package(url: "https://github.com/kewlbear/FFmpeg-iOS.git", from: "0.0.1")
+.package(url: "https://github.com/kewlbear/FFmpeg-iOS.git", from: "0.0.4")
 ```
 
 ## Usage
 
 ```
-import avformat
+import FFmpegSupport
 
-var ifmt_ctx: UnsafeMutablePointer<AVFormatContext>?
-var ret = avformat_open_input(&ifmt_ctx, filename, nil, nil)
+ffmpeg(["ffmpeg", "-i", "in.webm", "out.mp4"])
 ```
 
 See https://github.com/kewlbear/YoutubeDL-iOS.
