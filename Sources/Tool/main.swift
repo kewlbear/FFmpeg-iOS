@@ -241,6 +241,8 @@ extension Tool {
                         "--disable-doc",
                         "--enable-pic",
                         "--disable-audiotoolbox",
+                        "--disable-sdl2",
+                        "--disable-libxcb",
                         "--target-os=darwin",
                         "--arch=\(arch)",
                         "--cc=\(cc)",
