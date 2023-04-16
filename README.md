@@ -5,7 +5,7 @@ This Swift package enables you to use FFmpeg libraries in your iOS, Mac Catalyst
 ## Installation
 
 ```
-.package(url: "https://github.com/kewlbear/FFmpeg-iOS.git", from: "0.0.4")
+.package(url: "https://github.com/kewlbear/FFmpeg-iOS.git", from: "0.0.6-b")
 ```
 
 ## Usage
