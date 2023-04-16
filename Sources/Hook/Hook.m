@@ -23,7 +23,7 @@
 
 jmp_buf j;
 
-void reset(void) {
+static void resetFFmpeg(void) {
     // FIXME: replace with #include <ffmpeg.h>
     extern int nb_input_files;
     extern int nb_output_files;
@@ -34,12 +34,16 @@ void reset(void) {
     nb_filtergraphs = 0;
 }
 
+static void resetFFprobe() {
+    // FIXME: ...
+}
+
 void FFmpeg_exit(int code) {
     NSLog(@"%s=%d, will longjmp", __func__, code);
     longjmp(j, code ?: HOOK0);
 }
 
-int HookMain(int argc, char **argv) {
+int HookMain(int argc, char **argv, int (*realMain)(int, char**), void (*reset)()) {
     int ret = setjmp(j);
     NSLog(@"%s: setjmp=%d", __func__, ret);
     if (ret) {
@@ -48,11 +52,20 @@ int HookMain(int argc, char **argv) {
         return ret == HOOK0 ? 0 : ret;
     }
     
-    int FFmpeg_main(int, char **);
-    ret = FFmpeg_main(argc, argv);
-    NSLog(@"%s: FFmpeg_main=%d", __func__, ret);
+    ret = realMain(argc, argv);
+    NSLog(@"%s: realMain=%d", __func__, ret);
     
     reset();
     
     return ret;
+}
+
+int HookFFmpeg(int argc, char **argv) {
+    extern int FFmpeg_main(int, char**);
+    return HookMain(argc, argv, FFmpeg_main, resetFFmpeg);
+}
+
+int HookFFprobe(int argc, char **argv) {
+    extern int FFprobe_main(int, char**);
+    return HookMain(argc, argv, FFprobe_main, resetFFprobe);
 }

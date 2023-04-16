@@ -166,6 +166,35 @@ extension Tool {
 
             try build(lib: sourceOptions.lib, sourceDirectory: sourceOptions.sourceURL.path)
             
+            print("Done")
+        }
+        
+        func build(lib: String, sourceDirectory: String) throws {
+            var sourceOptions = sourceOptions
+            sourceOptions.lib = lib
+            
+            if !FileManager.default.fileExists(atPath: sourceDirectory) {
+                print("\(lib) source not found. Trying to download...")
+                var downloadSource = SourceCommand()
+                downloadSource.sourceOptions = sourceOptions
+                downloadSource.sourceOptions.sourceDirectory = sourceDirectory
+                downloadSource.downloadOptions = downloadOptions
+                try downloadSource.run()
+            }
+            
+            switch lib {
+            case "ffmpeg":
+                try buildFFmpeg(sourceDirectory: sourceDirectory)
+            case "fdk-aac":
+                try buildFdkAac(sourceDirectory: sourceDirectory)
+            case "lame":
+                try buildLame(sourceDirectory: sourceDirectory)
+            case "x264":
+                try buildX264(sourceDirectory: sourceDirectory)
+            default:
+                throw ExitCode.failure
+            }
+            
             if !disableXcframework {
                 print("building xcframeworks...")
                 var createXcframeworks = XCFrameworkCommand()
@@ -199,32 +228,6 @@ extension Tool {
                 fatCommand.libraryOptions = libraryOptions
                 fatCommand.sourceOptions = sourceOptions
                 try fatCommand.run()
-            }
-            
-            print("Done")
-        }
-        
-        func build(lib: String, sourceDirectory: String) throws {
-            if !FileManager.default.fileExists(atPath: sourceDirectory) {
-                print("\(lib) source not found. Trying to download...")
-                var downloadSource = SourceCommand()
-                downloadSource.sourceOptions = sourceOptions
-                downloadSource.sourceOptions.sourceDirectory = sourceDirectory
-                downloadSource.downloadOptions = downloadOptions
-                try downloadSource.run()
-            }
-            
-            switch lib {
-            case "ffmpeg":
-                try buildFFmpeg(sourceDirectory: sourceDirectory)
-            case "fdk-aac":
-                try buildFdkAac(sourceDirectory: sourceDirectory)
-            case "lame":
-                try buildLame(sourceDirectory: sourceDirectory)
-            case "x264":
-                try buildX264(sourceDirectory: sourceDirectory)
-            default:
-                throw ExitCode.failure
             }
         }
         
@@ -268,6 +271,11 @@ extension Tool {
                     ]
                 default:
                     platformOptions = []
+                }
+                // FIXME: fdk-aac, x264 ...
+                if configureOptions.extraOptions.contains("--enable-libmp3lame") {
+                    let lameInstall = $0.installPrefix.replacingOccurrences(of: "/FFmpeg/", with: "/lame/")
+                    $0.cFlags.append(" -I\(lameInstall)/include -L\(lameInstall)/lib")
                 }
                 return $0.options
                     + configureOptions.extraOptions
@@ -361,7 +369,7 @@ extension Tool {
             let buildDir = URL(fileURLWithPath: buildDirectory)
                 .appendingPathComponent(name)
             for archx in arch {
-                print("building \(archx)...")
+                print("building \(name) for \(archx)...")
                 let archDir = buildDir.appendingPathComponent(archx)
                 try createDirectory(at: archDir.path)
                 
@@ -392,9 +400,13 @@ extension Tool {
                 try launch(launchPath: "/usr/bin/make",
                            arguments: [
                             "-j3",
-                            "-f", "../../../libffmpeg/Makefile",
-                            "xinstall",
-                           ], // FIXME: GASPP_FIX_XCODE5=1 ?
+                           ]
+                           + (name == "FFmpeg" ? [
+                            "-f", "../../../libfftools/Makefile",
+                            "install-libfftools",
+                           ] : [
+                            "install",
+                           ]), // FIXME: GASPP_FIX_XCODE5=1 ?
                            currentDirectoryPath: archDir.path)
                 
                 let all = buildDir
