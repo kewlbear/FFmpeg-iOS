@@ -7,7 +7,8 @@ var products: [Product] = [
         name: "FFmpeg-iOS",
         targets: [
             "avcodec", "avutil", "avformat", "avfilter", "avdevice", "swscale", "swresample",
-            "Depend", "ffmpeg", "Hook", "FFmpegSupport",
+            "Depend", "fftools", "Hook", "FFmpegSupport",
+            "mp3lame",
         ]),
 ]
 
@@ -25,14 +26,15 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
     ],
     targets: [
-        .binaryTarget(name: "avcodec", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.5/avcodec.zip", checksum: "f08fea9dde6803859df6a6cc4f2dd324c0e81b6b5adad11d55a90d8c7452626e"),
-        .binaryTarget(name: "avutil", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.5/avutil.zip", checksum: "f9c38287dbdef81356f7908eb98586ea2c2fb6b111cb919a066dfdd4832371b0"),
-        .binaryTarget(name: "avformat", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.5/avformat.zip", checksum: "07fa3f6dc9dc3655db3a9336d31d171fc17f25d62d46c0ee3ff457f4ef3b26c7"),
-        .binaryTarget(name: "avfilter", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.5/avfilter.zip", checksum: "73168547bfe8e3b3b9e51b0a606e84344b9bd0e4daf50dcc7c276a94a89d60f2"),
-        .binaryTarget(name: "avdevice", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.5/avdevice.zip", checksum: "1ee7dca682b6537c43d55838c3f2f54974fd2b43ba2c4ad6a4da3ce9d1a91b42"),
-        .binaryTarget(name: "swscale", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.5/swscale.zip", checksum: "227a7eb4a00bfc0face1ff66ebfec57f933abbb6ab9fa164c4a3881943296a2f"),
-        .binaryTarget(name: "swresample", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.5/swresample.zip", checksum: "a6a5a98aeda4cabb4e967907775ff2a7816d25d38cba7d717a4f50964ae1216e"),
-        .binaryTarget(name: "ffmpeg", url: "https://github.com/kewlbear/FFmpeg-iOS/releases/download/0.0.5/ffmpeg.zip", checksum: "d4a485d5a33d69c4bb06290ba08c49c30d53fd9d8084613d9342feb126511e88"),
+        .binaryTarget(name: "avcodec", path: "Frameworks/avcodec.xcframework"),
+        .binaryTarget(name: "avutil", path: "Frameworks/avutil.xcframework"),
+        .binaryTarget(name: "avformat", path: "Frameworks/avformat.xcframework"),
+        .binaryTarget(name: "avfilter", path: "Frameworks/avfilter.xcframework"),
+        .binaryTarget(name: "avdevice", path: "Frameworks/avdevice.xcframework"),
+        .binaryTarget(name: "swscale", path: "Frameworks/swscale.xcframework"),
+        .binaryTarget(name: "swresample", path: "Frameworks/swresample.xcframework"),
+        .binaryTarget(name: "fftools", path: "Frameworks/fftools.xcframework"),
+        .binaryTarget(name: "mp3lame", path: "Frameworks/mp3lame.xcframework"),
         .target(name: "Tool", dependencies: [
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
         ]),
@@ -47,8 +49,9 @@ let package = Package(
                 ]
         ),
         .target(name: "Hook", dependencies: [
-            "ffmpeg",
+            "fftools",
             "avcodec", "avformat", "avfilter", "avdevice", "avutil", "swscale", "swresample",
+            "mp3lame",
             "Depend",
         ]),
         .target(name: "FFmpegSupport", dependencies: [

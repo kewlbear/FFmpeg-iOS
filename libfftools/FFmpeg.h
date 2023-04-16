@@ -20,4 +20,6 @@
 
 int FFmpeg_main(int, char**);
 
+int FFprobe_main(int, char**);
+
 #endif /* FFmpeg_h */

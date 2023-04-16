@@ -29,15 +29,26 @@ class FFmpeg_iOSTests: XCTestCase {
     }
 
     @available(iOS 13.0, *)
-    func testExample() throws {
+    func testFFmpeg() throws {
         for _ in 1..<2 {
             _ = ffmpeg([
                 "ffmpeg",
+//                "-bsfs"
                 "-y",
                 "-i", "https://dl6.webmfiles.org/big-buck-bunny_trailer.webm",
                 URL(fileURLWithPath: NSTemporaryDirectory())
-                    .appendingPathComponent("test.mp4")
+                    .appendingPathComponent("test.mp3")
                     .path
+            ])
+        }
+    }
+
+    @available(iOS 13.0, *)
+    func testFFprobe() throws {
+        for _ in 1..<2 {
+            _ = ffprobe([
+                "ffprobe",
+                "https://dl6.webmfiles.org/big-buck-bunny_trailer.webm",
             ])
         }
     }

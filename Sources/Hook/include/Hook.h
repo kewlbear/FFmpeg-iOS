@@ -20,6 +20,8 @@
 
 extern void FFmpeg_exit(int);
 
-extern int HookMain(int, char**);
+extern int HookFFmpeg(int, char**);
+
+extern int HookFFprobe(int, char**);
 
 #endif /* Hook_h */

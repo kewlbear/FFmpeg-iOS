@@ -3,3 +3,7 @@
 /Packages
 /*.xcodeproj
 xcuserdata/
+build
+ffmpeg
+lame
+Frameworks
