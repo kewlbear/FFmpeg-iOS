@@ -2,28 +2,17 @@
 
 import PackageDescription
 
-var products: [Product] = [
-    .library(
-        name: "FFmpeg-iOS",
-        targets: [
-            "avcodec", "avutil", "avformat", "avfilter", "avdevice", "swscale", "swresample",
-            "Depend", "fftools", "Hook", "FFmpegSupport",
-            "mp3lame",
-        ]),
-]
-
-#if os(macOS)
-products += [
-    .executable(name: "ffmpeg-ios", targets: ["Tool"]),
-]
-#endif
-
 let package = Package(
     name: "FFmpeg-iOS",
     platforms: [.iOS(.v13)],
-    products: products,
-    dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
+    products: [
+        .library(
+            name: "FFmpeg-iOS",
+            targets: [
+                "avcodec", "avutil", "avformat", "avfilter", "avdevice", "swscale", "swresample",
+                "Depend", "fftools", "Hook", "FFmpegSupport",
+                "mp3lame",
+            ]),
     ],
     targets: [
         .binaryTarget(name: "avcodec", path: "Frameworks/avcodec.xcframework"),
@@ -35,9 +24,6 @@ let package = Package(
         .binaryTarget(name: "swresample", path: "Frameworks/swresample.xcframework"),
         .binaryTarget(name: "fftools", path: "Frameworks/fftools.xcframework"),
         .binaryTarget(name: "mp3lame", path: "Frameworks/mp3lame.xcframework"),
-        .target(name: "Tool", dependencies: [
-            .product(name: "ArgumentParser", package: "swift-argument-parser"),
-        ]),
         .target(name: "Depend",
                 linkerSettings: [
                     .linkedLibrary("z"),
