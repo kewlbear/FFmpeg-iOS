@@ -37,7 +37,7 @@ class FFmpeg_iOSTests: XCTestCase {
                 "-y",
                 "-i", "https://dl6.webmfiles.org/big-buck-bunny_trailer.webm",
                 URL(fileURLWithPath: NSTemporaryDirectory())
-                    .appendingPathComponent("test.mp3")
+                    .appendingPathComponent("test.mp4")
                     .path
             ])
         }

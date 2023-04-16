@@ -11,7 +11,6 @@ let package = Package(
             targets: [
                 "avcodec", "avutil", "avformat", "avfilter", "avdevice", "swscale", "swresample",
                 "Depend", "fftools", "Hook", "FFmpegSupport",
-                "mp3lame",
             ]),
     ],
     targets: [
@@ -23,7 +22,6 @@ let package = Package(
         .binaryTarget(name: "swscale", path: "Frameworks/swscale.xcframework"),
         .binaryTarget(name: "swresample", path: "Frameworks/swresample.xcframework"),
         .binaryTarget(name: "fftools", path: "Frameworks/fftools.xcframework"),
-        .binaryTarget(name: "mp3lame", path: "Frameworks/mp3lame.xcframework"),
         .target(name: "Depend",
                 linkerSettings: [
                     .linkedLibrary("z"),
@@ -37,7 +35,6 @@ let package = Package(
         .target(name: "Hook", dependencies: [
             "fftools",
             "avcodec", "avformat", "avfilter", "avdevice", "avutil", "swscale", "swresample",
-            "mp3lame",
             "Depend",
         ]),
         .target(name: "FFmpegSupport", dependencies: [
