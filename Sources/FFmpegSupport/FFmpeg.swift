@@ -19,15 +19,25 @@ import Foundation
 //import ffmpeg
 import Hook
 
-var argv: [UnsafeMutablePointer<CChar>?] = []
-
 public func ffmpeg(_ args: String...) -> Int {
     ffmpeg(args)
 }
 
 public func ffmpeg(_ args: [String]) -> Int {
+    run(tool: HookFFmpeg, args: args)
+}
+
+public func ffprobe(_ args: String...) -> Int {
+    ffprobe(args)
+}
+
+public func ffprobe(_ args: [String]) -> Int {
+    run(tool: HookFFprobe, args: args)
+}
+
+func run(tool: (Int32, UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32, args: [String]) -> Int {
     print(#function, args)
-    argv = args.map { strdup($0) } // FIXME: free
-    let ret = HookMain(Int32(args.count), &argv)
+    var argv = args.map { strdup($0) } // FIXME: free
+    let ret = tool(Int32(args.count), &argv)
     return Int(ret)
 }
