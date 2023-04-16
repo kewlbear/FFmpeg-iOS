@@ -2,62 +2,19 @@
 
 import PackageDescription
 
-var products: [Product] = [
-    .library(
-        name: "FFmpeg-iOS",
-        targets: [
-            "avcodec", "avutil", "avformat", "avfilter", "avdevice", "swscale", "swresample",
-            "Depend", "fftools", "Hook", "FFmpegSupport",
-            "mp3lame",
-        ]),
-]
-
-#if os(macOS)
-products += [
-    .executable(name: "ffmpeg-ios", targets: ["Tool"]),
-]
-#endif
-
 let package = Package(
     name: "FFmpeg-iOS",
-    platforms: [.iOS(.v13)],
-    products: products,
+    platforms: [.macOS(.v10_13)],
+    products: [
+        .executable(name: "ffmpeg-ios", targets: ["Tool"]),
+    ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
     ],
     targets: [
-        .binaryTarget(name: "avcodec", path: "Frameworks/avcodec.xcframework"),
-        .binaryTarget(name: "avutil", path: "Frameworks/avutil.xcframework"),
-        .binaryTarget(name: "avformat", path: "Frameworks/avformat.xcframework"),
-        .binaryTarget(name: "avfilter", path: "Frameworks/avfilter.xcframework"),
-        .binaryTarget(name: "avdevice", path: "Frameworks/avdevice.xcframework"),
-        .binaryTarget(name: "swscale", path: "Frameworks/swscale.xcframework"),
-        .binaryTarget(name: "swresample", path: "Frameworks/swresample.xcframework"),
-        .binaryTarget(name: "fftools", path: "Frameworks/fftools.xcframework"),
-        .binaryTarget(name: "mp3lame", path: "Frameworks/mp3lame.xcframework"),
         .target(name: "Tool", dependencies: [
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
         ]),
-        .target(name: "Depend",
-                linkerSettings: [
-                    .linkedLibrary("z"),
-                    .linkedLibrary("bz2"),
-                    .linkedLibrary("iconv"),
-                    .linkedFramework("AVFoundation"),
-                    .linkedFramework("VideoToolbox"),
-                    .linkedFramework("CoreMedia"),
-                ]
-        ),
-        .target(name: "Hook", dependencies: [
-            "fftools",
-            "avcodec", "avformat", "avfilter", "avdevice", "avutil", "swscale", "swresample",
-            "mp3lame",
-            "Depend",
-        ]),
-        .target(name: "FFmpegSupport", dependencies: [
-            "Hook",
-        ]),
-        .testTarget(name: "FFmpeg-iOSTests",
-                    dependencies: ["FFmpegSupport",]),
+        .testTarget(name: "FFmpeg-iOSTests"),
     ]
 )
